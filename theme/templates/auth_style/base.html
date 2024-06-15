@@ -1,0 +1,80 @@
+{% load static tailwind_tags %}
+{% load icons %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>{% block title %}My Site{% endblock title %}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    {% tailwind_css %}
+</head>
+<body class="bg-gray-50 font-serif leading-normal tracking-normal">
+    <div class="container mx-auto">
+        <!-- Responsive Header -->
+        <header class="bg-white shadow-md py-4">
+            <div class="container mx-auto flex justify-between items-center px-4">
+                <a href="/" class="text-2xl font-bold">Virtual Gym</a>
+                <nav class="hidden md:flex space-x-4">
+                    <a href="{% url 'home' %}" class="text-gray-700 hover:text-blue-500">Home</a>
+                    <a href="{% url 'About_us' %}" class="text-gray-700 hover:text-blue-500">About Us</a>
+                    <a href="{% url 'Price_page' %}" class="text-gray-700 hover:text-blue-500">Pricing</a>
+                    {% if user.is_authenticated %}
+                    {% url 'account_email' as email_url %}
+                    {% url 'socialaccount_connections' as socialaccount_url %}
+                    {% if email_url or socialaccount_url %}
+                        <a href="{% if email_url %}{{ email_url }}{% else %}{{ socialaccount_url }}{% endif %}"
+                           class="text-gray-700 hover:text-blue-500">Manage Account</a>
+                    {% endif %}
+                    <a href="{% url 'account_logout' %}" class="text-gray-700 hover:text-blue-500">Sign Out</a>
+                {% else %}
+                    <a href="{% url 'account_login' %}" class="text-gray-700 hover:text-blue-500">Sign In</a>
+                    {% url 'account_signup' as signup_url %}
+                    {% if signup_url %}
+                        <a href="{{ signup_url }}" class="text-gray-700 hover:text-blue-500">Sign Up</a>
+                    {% endif %}
+                {% endif %}
+                </nav>
+                <div class="md:hidden">
+                    <button id="nav-toggle" class="focus:outline-none">
+                        {% icon "fa-solid fa-bars" %}
+                    </button>
+                </div>
+            </div>
+            <div id="nav-menu" class="hidden md:hidden">
+                <a href="{% url 'home' %}" class="block px-4 py-2 text-gray-700 hover:text-blue-500">Home</a>
+                <a href="{% url 'About_us' %}" class="block px-4 py-2 text-gray-700 hover:text-blue-500">About Us</a>
+                <a href="{% url 'Price_page' %}" class="block px-4 py-2 text-gray-700 hover:text-blue-500">Pricing</a>
+               
+                {% if user.is_authenticated %}
+                    {% url 'account_email' as email_url %}
+                    {% url 'socialaccount_connections' as socialaccount_url %}
+                    {% if email_url or socialaccount_url %}
+                        <a href="{% if email_url %}{{ email_url }}{% else %}{{ socialaccount_url }}{% endif %}"
+                           class="block px-4 py-2 text-gray-700 hover:text-blue-500">Manage Account</a>
+                    {% endif %}
+                    <a href="{% url 'account_logout' %}" class="block px-4 py-2 text-gray-700 hover:text-blue-500">Sign Out</a>
+                {% else %}
+                    <a href="{% url 'account_login' %}" class="block px-4 py-2 text-gray-700 hover:text-blue-500">Sign In</a>
+                    {% url 'account_signup' as signup_url %}
+                    {% if signup_url %}
+                        <a href="{{ signup_url }}" class="block px-4 py-2 text-gray-700 hover:text-blue-500">Sign Up</a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </header>
+        
+        {% block content %}
+        <!-- This is where the content from other templates will be inserted -->
+        {% endblock content %}
+    </div>
+
+    <script>
+        document.getElementById('nav-toggle').onclick = function() {
+            var navMenu = document.getElementById('nav-menu');
+            navMenu.classList.toggle('hidden');
+        }
+    </script>
+</body>
+</html>

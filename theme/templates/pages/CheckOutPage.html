@@ -1,0 +1,28 @@
+{% extends "root/base.html" %}
+
+{% block content %}
+<section class="py-8">
+    <h1 class="text-3xl mb-4">Checkout</h1>
+    <div class="border inline-flex w-full p-4 rounded-lg shadow-md">
+        {% if package.image %}
+        <img src="{{ package.image.url }}" alt="{{ package.name }}" class="w-40 h-40 mr-4 object-cover mb-4">
+        {% endif %}
+        <div class="grid grid-cols-2 gap-4 justify-end w-full">
+            <div>
+                <h2 class="text-2xl font-bold mb-2">{{ package.name }}</h2>
+                <p class="text-lg">{{ package.duration_months }} months</p>
+                <p class="text-lg">Price: ${{ package.discounted_price_usd }}</p>
+            </div>
+            <div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="bg-purple-500 hover:bg-purple-800 p-4 text-center rounded-full shadow-md cursor-pointer text-white">
+                        Confirm Purchase
+                    </button>
+                </form>
+            </div>
+        <div>
+    </div>
+</section>
+{% endblock content %}
