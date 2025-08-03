@@ -22,7 +22,6 @@
 - **Backend**: Django REST Framework  
 - **Image Processing**: OpenCV, MediaPipe, Pillow  
 - **Database**: SQLite / PostgreSQL  
-- **Deployment**: Docker
 
 ---
 
