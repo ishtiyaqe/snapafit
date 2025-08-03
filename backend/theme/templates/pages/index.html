@@ -1,0 +1,276 @@
+{% extends "root/base.html" %} {% load static %} {% load custom_filters %}  {% load static %} {% block content %}
+<section class="grid lg:grid-cols-2 grid-cols-1 ">
+  <div class="text-center flex lg:text-start mx-auto">
+    <div class="self-center ">
+      <h1 class="text-2xl lg:text-5xl font-bold text-gradient mb-5 whitespace-nowrap">
+        Transform Your Fitness Journey
+      </h1>
+      <p class="mt-4 text-lg md:text-2xl font-semibold mb-5">
+        Struggling with Missing or Incomplete Equipment?
+      </p>
+      <p class="mt-4 mb-10 text-lg md:text-2xl font-semibold underline">
+        We've Got You Covered!
+      </p>
+      <div class="mt-10 mb-10">
+        <a
+          href="{% url 'user-assessment' %}"
+          class=" cursor-pointer text-white transform-button bg-gradient-to-r from-purple-500 to-pink-500 py-2 px-6 rounded-md font-semibold"
+        >
+          Start Your Free Trial Now!
+        </a>
+        <p class="mt-4 text-xs font-semibold lg:ml-6 underline">
+          Join Thousands of Satisfied Users!
+        </p>
+      </div>
+    </div>
+  </div>
+  <div>
+    <img src="/media/{{hr.image}}" class="m-4 w-full" alt="{{hr.name}}">
+  </div>
+  {% comment %} <div class="landing-page-3">
+    <section class="component-1">
+      <img
+        class="path-icon"
+        loading="lazy"
+        alt=""
+        src="{% static 'public/path@2x.png' %}"
+      />
+
+      <img
+        class="vqmzwyjnbpj7y6inz-hwz-transfor-icon"
+        alt=""
+        src="{% static 'public/vqmzwyjnbpj7y6inzhwztransformed-1@2x.png' %}"
+      />
+    </section>
+  </div> {% endcomment %}
+  {% comment %} <div  class="lg:hidden flex justify-center mt-4">
+    <img src="/media/{{hr.mobile_image}}" alt="banner image" class="w-full h-96 object-contain " />
+  </div> {% endcomment %}
+</section>
+<h2 class="mt-4 mb-4 text-center text-gradient font-black text-3xl">
+  Why Choose Us?
+</h2>
+<section class="grid lg:grid-cols-2 grid-cols-1 gap-2 p-4">
+  <!-- Client Testimonials -->
+  <div class="self-center ">
+    <div class="p-6">
+      <div class="mt-4">
+        <div class="mb-2">
+          <p class="text-lg text-gradient font-black">
+            Personalized AI Fitness Plans On Whatsapp
+          </p>
+        </div>
+        <div class="space-y-2">
+          <div class="text-gray-700">
+            Get customized workout plans by simply taking pictures of your
+            equipment. Our AI tailors workouts to your goals and resources,
+            ensuring you don’t need a full gym to get fit.
+          </div>
+          <div class="space-y-2">
+            <div class="text-end mb-10 mt-4">
+              <p class="text-lg font-black text-gradient">
+                Anytime, Anywhere Access
+              </p>
+            </div>
+            <div class="text-gray-700">
+              Conveniently access your fitness plan and coaching directly
+              through WhatsApp, making it easy to stay on track no matter where
+              you are.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="text-end mt-4">
+        <p class="text-lg text-gradient font-black">Adaptive Workouts</p>
+      </div>
+    </div>
+    <div class="p-6">
+      <div class="text-gray-700">
+        Progress faster with adaptive workouts that evolve with your fitness
+        level, keeping you challenged and motivated.
+      </div>
+    </div>
+  </div>
+
+  <!-- WhatsApp Integration -->
+  <section class="">
+    <div class="">
+      <img
+        class="w-full h-full object-cover flex justify-center mx-auto"
+        loading="lazy"
+        alt="{{pp.name}}"
+        src="/media/{{pp.image}}"
+      />
+    </div>
+  </section>
+</section>
+
+<h2 class="mt-4 mb-4 text-center text-gradient font-black text-3xl">
+  How it works
+</h2>
+<section class="mb-10">
+  <div class="p-4 m-4">
+    <div class="grid lg:grid-cols-2 grid-cols-1 gap-2">
+      <div class="grid grid-cols-1  text-gradient">
+        <div>
+          <p class="text-2xl font-bold">1</p>
+          <p class="text-lg font-semibold">Sign Up & Set Goals</p>
+          <p class="text-gray-600">Register and set your fitness objectives.</p>
+        </div>
+        <div>
+          <p class="text-2xl font-bold">2</p>
+          <p class="text-lg font-semibold">Scan Your Equipment</p>
+          <p class="text-gray-600">
+            Use your phone to take pictures of the equipment you have available.
+            Our AI will customize a workout plan based on what you have.
+          </p>
+        </div>
+        <div>
+          <p class="text-2xl font-bold">3</p>
+          <p class="text-lg font-semibold">
+            Personalized Training & Real-Time Feedback
+          </p>
+          <p class="text-gray-600">
+            Receive a custom workout plan tailored to your goals and equipment.
+            Get real-time feedback on your form to ensure proper technique.
+          </p>
+        </div>
+        <div>
+          <p class="text-2xl font-bold">4</p>
+          <p class="text-lg font-semibold">Track Progress & Adapt</p>
+          <p class="text-gray-600">
+            Monitor your progress with detailed analytics and enjoy adaptive
+            workouts that evolve with your fitness journey. Connect with a
+            supportive community for extra motivation.
+          </p>
+        </div>
+      </div>
+      <div class="feedback-reactions justify-center mx-auto">
+        {% for item in hw %}
+        <img
+          class="undraw-happy-news-hxmt-icon{{forloop.counter}} "
+          alt="{{item.name}}"
+          src="/media/{{item.image}}"
+        />
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<h2 class="mt-4 mb-10 text-center text-gradient font-black text-3xl">
+  What Our Clients Say About Us
+</h2>
+<section class="grid lg:grid-cols-3 grid-cols-1 gap-6 mb-10 ml-4 mr-4">
+{% for i in sy %}
+{% comment %} <div class="testimonial-slide{{ forloop.counter }} min-h-96 relative bg-cover bg-center" >
+    <div class="absolute -top-6 min-w-full flex flex-col items-center justify-center p-4 text-white">
+        <img class="rounded-full w-24 mb-4" src="/media/{{ i.image }}" alt="{{ i.name }}" />
+        <p class="text-lg font-semibold">{{ i.name }}</p>
+        <img
+                  class=""
+                  loading="lazy"
+                  alt=""
+                  src="{% static 'public/clarityblockquoteline.svg' %}"
+        >
+        <p class="text-xs px-16 mx-8 mt-2 text-center ">{{ i.comment }}</p>
+    </div>
+</div> {% endcomment %}
+
+<div class="bg-gradient-to-tr from-purple-500  to-pink-500 p-4 rounded-lg shadow-lg">
+  <div class="flex items-center mb-4">
+      {% if i.image %}
+      <img src="{{ i.image.url }}" alt="{{ i.name }}" class="w-16 h-16 rounded-full shadow-md mr-4">
+      {% else %}
+      <div class="w-16 h-16 rounded-full bg-gray-300 shadow-md mr-4"></div>
+      {% endif %}
+      <h2 class="text-lg font-semibold">{{ i.name }}</h2>
+  </div>
+  <p class="text-white">{{ i.comment }}</p>
+</div>
+{% endfor %}
+
+
+</section>
+
+
+<h2 class="mt-4 mb-4 text-center text-gradient font-black text-3xl">
+    Choose Your Package!
+  </h2>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 justify-items-center mx-auto gap-12  mt-10  m-16">
+    {% for package in packages %}
+    <div class="relative border w-80  min-h-96 rounded-lg text-start bg-gradient-to-tr from-purple-500  to-pink-500 text-white p-6  shadow-md">
+
+      <h2 class="text-normal mt-6 uppercase font-bold mb-2">{{ package.name }}</h2>
+      <p class="text-md pl-6">${{ package.price_usd }} /<span class="text-gray-400">{{ package.duration_months }} MONTH</span></p>
+      <div class="mt-6 mb-6">
+        {% with elements=package_elements|get:package.id %}
+        <ul class="list-none mb-4 flex justify-start space-y-4 flex-col">
+          {% for element in elements %}
+          <li class="text-xs"><span class="text-white">⭐</span> {{ element.pointer }}</li>
+          {% empty %}
+          <li class="text-xs">No elements found.</li>
+          {% endfor %}
+        </ul>
+        {% endwith %}
+      </div>
+    
+    
+
+      <div class="mt-10  text-black flex justify-center">
+        <a
+          href="{% url 'checkout' package.id %}"
+          class="bg-white hover:text-white text-md pl-6 pr-6 font-semibold  hover:bg-purple-800 p-2 text-center rounded-md shadow-md cursor-pointer "
+        >
+          Let's Start From Today
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+<div class="flex justify-center mb-20">
+  <a href="{% url 'user-assessment' %}"
+        class=" cursor-pointer text-white transform-button bg-gradient-to-r from-purple-500 to-pink-500 py-2 px-6 rounded-md font-semibold"
+      >
+        Start Your Free Trial Now!
+</a>
+</div>
+
+
+
+<div class="testimonial-slide44 relative w-full h-[400px] mt-72">
+  <div class="bg-gray-100 rounded-lg shadow-md p-6 absolute top-1 left-1/2 transform -translate-x-1/2 -translate-y-1/2 lg:w-fit w-80 lg:px-4 ">
+    <h2 class="mt-4 mb-4 text-center text-gradient font-black text-3xl">
+      FAQ
+    </h2>
+      {% for faq in faqs %}
+      <div class="faq-item text-sm bg-white rounded-md shadow-md mt-2 mb-2 w-fill" onclick="toggleAnswer(this)">
+        <div class="flex-1 flex flex-row items-start justify-start">
+          <b class="flex-1 p-4 shadow-md cursor-pointer">{{ faq.question }}</b>
+        </div>
+        <div class="faq-answer p-4 {% if forloop.first %}{% else %}hidden{% endif %}">{{ faq.answer }}</div>
+      </div>
+      {% endfor %}
+  
+      <script>
+        function toggleAnswer(element) {
+          // Hide all other answers
+          document.querySelectorAll('.faq-answer').forEach(answer => {
+            if (answer !== element.querySelector('.faq-answer')) {
+              answer.classList.add('hidden');
+            }
+          });
+  
+          // Toggle the selected answer
+          const answer = element.querySelector(".faq-answer");
+          answer.classList.toggle("hidden");
+        }
+      </script>
+    </div>
+  </div>
+  
+  
+
+
+  {% endblock %}

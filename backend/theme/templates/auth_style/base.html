@@ -1,0 +1,126 @@
+{% load static tailwind_tags %}
+{% load icons %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>{% block title %}My Site{% endblock title %}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./static/css/index.css"> 
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@900&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap"
+    /> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    {% tailwind_css %}
+    <style>
+        .text-gradient {
+          background: linear-gradient(90.8deg,#ff3b8e,#1b3399);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
+      
+        .transform-button {
+          transition: all 0.3s ease-in-out;
+        }
+        .transform-button:hover {
+          transform: scale(1.1);
+          background-color: #ec4899;
+          color: #fff;
+        }
+      </style>
+      <script type="text/javascript">
+        (function () {
+            var options = {
+                whatsapp: "+8801863455599", // WhatsApp number
+                call_to_action: "Message us", // Call to action
+                position: "right", // Position may be 'right' or 'left'
+            };
+            var proto = document.location.protocol, host = "getbutton.io", url = proto + "//static." + host;
+            var s = document.createElement('script'); s.type = 'text/javascript'; s.async = true; s.src = url + '/widget-send-button/js/init.js';
+            s.onload = function () { WhWidgetSendButton.init(host, proto, options); };
+            var x = document.getElementsByTagName('script')[0]; x.parentNode.insertBefore(s, x);
+        })();
+    </script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body class="bg-white leading-normal tracking-normal">
+    <div class="container mx-auto">
+        <!-- Responsive Header -->
+        {% comment %} <header class="bg-white py-4">
+            <div class="container mx-auto flex justify-between items-center px-4">
+                
+                {% comment %} <nav class="hidden md:flex space-x-4">
+                    <a href="{% url 'home' %}" class="text-gray-700 hover:text-blue-500">Home</a>
+                    <a href="{% url 'post-list' %}" class="text-gray-700 hover:text-blue-500">Blog</a>
+                    <a href="{% url 'About_us' %}" class="text-gray-700 hover:text-blue-500">About Us</a>
+                    <a href="{% url 'Price_page' %}" class="text-gray-700 hover:text-blue-500">Pricing</a>
+                    <a href="{% url 'workout_view' %}" class="text-gray-700 hover:text-blue-500">Workout</a>
+                    <a href="{% url 'user_assessment_detail' %}" class="text-gray-700 hover:text-blue-500">My Details</a>
+                    {% if user.is_authenticated %}
+                    {% url 'account_email' as email_url %}
+                    {% url 'socialaccount_connections' as socialaccount_url %}
+                    
+                    <a href="{% url 'account_logout' %}" class="text-gray-700 hover:text-blue-500">Sign Out</a>
+                {% else %}
+                    <a href="{% url 'account_login' %}" class="text-gray-700 hover:text-blue-500">Sign In</a>
+                    {% url 'account_signup' as signup_url %}
+                    {% if signup_url %}
+                        <a href="{{ signup_url }}" class="text-gray-700 hover:text-blue-500">Sign Up</a>
+                    {% endif %}
+                {% endif %}
+                </nav> {% endcomment %}
+
+                <div class="md:hidden">
+                    <button id="nav-toggle" class="focus:outline-none">
+                        {% icon "fa-solid fa-bars" %}
+                    </button>
+                </div>
+
+                <a href="/" class="text-2xl font-bold text-gradient">Snapafit</a>
+            </div>
+            <div id="nav-menu" class="hidden md:hidden">
+                <a href="{% url 'home' %}" class="block px-4 py-2 text-gray-700 hover:text-blue-500">Home</a>
+                <a href="{% url 'post-list' %}" class="block px-4 py-2 text-gray-700 hover:text-blue-500">Blog</a>
+                <a href="{% url 'About_us' %}" class="block px-4 py-2 text-gray-700 hover:text-blue-500">About Us</a>
+                <a href="{% url 'Price_page' %}" class="block px-4 py-2 text-gray-700 hover:text-blue-500">Pricing</a>
+                <a href="{% url 'workout_view' %}" class="block px-4 py-2 text-gray-700 hover:text-blue-500">Workout</a>
+                <a href="{% url 'user_assessment_detail' %}" class="block px-4 py-2 text-gray-700 hover:text-blue-500">My Details</a>
+               
+                {% if user.is_authenticated %}
+                    {% url 'account_email' as email_url %}
+                    {% url 'socialaccount_connections' as socialaccount_url %}
+           
+                    <a href="{% url 'account_logout' %}" class="block px-4 py-2 text-gray-700 hover:text-blue-500">Sign Out</a>
+                {% else %}
+                    <a href="{% url 'account_login' %}" class="block px-4 py-2 text-gray-700 hover:text-blue-500">Sign In</a>
+                    {% url 'account_signup' as signup_url %}
+                    {% if signup_url %}
+                        <a href="{{ signup_url }}" class="block px-4 py-2 text-gray-700 hover:text-blue-500">Sign Up</a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </header>
+         {% endcomment %}
+        {% block content %}
+        <!-- This is where the content from other templates will be inserted -->
+        {% endblock content %}
+    </div>
+
+    <script>
+        document.getElementById('nav-toggle').onclick = function() {
+            var navMenu = document.getElementById('nav-menu');
+            navMenu.classList.toggle('hidden');
+        }
+    </script>
+</body>
+</html>

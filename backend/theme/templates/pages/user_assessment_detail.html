@@ -1,0 +1,127 @@
+{% extends "root/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<div id="user-data">
+    <h2 class="mt-4 mb-4 text-center text-gradient font-black text-3xl">My Details</h2>
+    <a class="p-4  m-4 rounded-md shadow-md text-gradient font-semibold flex justify-end text-lg  bg-purple-600 hover:bg-purple-800" href="#" id="edit-link">✏️ Edit</a>
+    <div class="grid ml-4 mr-4 mt-2 mb-10 rounded-md shadow-md lg:grid-cols-2 grid-cols-1 gap-4">
+        
+    <div class="p-4 lg:border-r-2  font-semibold space-y-2">
+        <p>Gender: {{ user_assessment.gender }}</p>
+        <p>Height: {{ user_assessment.height_ft }} ft {{ user_assessment.height_in }} in</p>
+        <p>Weight: {{ user_assessment.weight_kg }} kg</p>
+        <p>Age: {{ user_assessment.age }}</p>
+        <p>Goal: {{ user_assessment.goal }}</p>
+        <p>Target Muscle: {{ user_assessment.target_muscle }}</p>
+        <p>Target Body Part: {{ user_assessment.target_body_part }}</p>
+        <p>WhatsApp: {{ user_assessment.whatsapp }}</p>
+        <p>Target Weight: {{ user_assessment.target_weight }}</p>
+        <p>Workout Preferences: {{ user_assessment.workout_preferences }}</p>
+        <p>Training Days per Week: {{ user_assessment.training_days_per_week }}</p>
+        <p>BMI: {{ user_assessment.bmi }}</p>
+    </div>
+    <div class="p-4 grid grid-cols-2  gap-2">
+        {% if user_assessment.person_image %}
+        <img src="{{ user_assessment.person_image.url }}" alt="Person Image" 
+        class="w-full h-auto object-cover p-2 shadow-md rounded-lg bg-gray-200"
+        >
+        {% endif %}
+        {% if user_assessment.tools_image %}
+        <img src="{{ user_assessment.tools_image.url }}" alt="Tools Image" 
+        class="w-full h-auto object-cover p-2 shadow-md rounded-lg bg-gray-200"
+        >
+        {% endif %}
+    </div>
+    </div>
+    
+    
+    
+</div>
+
+<div id="edit-form"  class="p-4 " style="display:none;">
+    <h2 class="mt-4 mb-4 text-center text-gradient font-black text-3xl">Update My Deatils</h2>
+    <form class="grid lg:grid-cols-2 grid-cols-1 gap-4 p-4 text-white rounded-md shadow-md mb-10" id="user-assessment-form" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div>
+                {{ form|crispy }}
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+            {% if user_assessment.person_image %}
+            <div>
+                <label for="id_person_image">Current Person Image Preview:</label>
+                <img class="w-full h-auto object-cover p-2 shadow-md rounded-lg bg-gray-200"
+                 id="preview-person-image" src="{{ user_assessment.person_image.url }}" alt="Person Image" width="100">
+                
+            </div>
+            {% endif %}
+            {% if user_assessment.tools_image %}
+            <div>
+                <label for="id_tools_image">Current Tools Image Preview:</label>
+                <img class="w-full h-auto object-cover p-2 shadow-md rounded-lg bg-gray-200" 
+                id="preview-tools-image" src="{{ user_assessment.tools_image.url }}" alt="Tools Image" width="100">
+                
+            </div>
+            {% endif %}
+        </div>
+        
+        <button class="bg-gradient-to-tr from-pink-600 to-violet-900 hover:to-pink-600 hover:from-violet-900 text-white font-bold text-lg p-2 rounded-lg shadow-md" type="submit">Save</button>
+        <button class="bg-gradient-to-tr from-pink-600 to-violet-900 hover:to-pink-600 hover:from-violet-900 text-white font-bold text-lg p-2 rounded-lg shadow-md" type="button" id="close-button">Close</button>
+    </form>
+</div>
+
+
+<script>
+    $(document).ready(function() {
+        $('#edit-link').on('click', function(event) {
+            event.preventDefault();
+            $('#user-data').hide();
+            $('#edit-form').show();
+        });
+
+        $('#close-button').on('click', function(event) {
+            event.preventDefault();
+            $('#edit-form').hide();
+            $('#user-data').show();
+        });
+
+        $('#user-assessment-form').on('submit', function(event) {
+            event.preventDefault();
+            var formData = new FormData(this);
+            $.ajax({
+                url: "{% url 'update_user_assessment' %}",
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.status === 'success') {
+                        location.reload();
+                    } else {
+                        alert('There was an error updating your data.');
+                    }
+                }
+            });
+        });
+
+        function readURL(input, previewId) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    $(previewId).attr('src', e.target.result);
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        $("#id_person_image").change(function() {
+            readURL(this, '#preview-person-image');
+        });
+
+        $("#id_tools_image").change(function() {
+            readURL(this, '#preview-tools-image');
+        });
+    });
+</script>
+{% endblock content %}

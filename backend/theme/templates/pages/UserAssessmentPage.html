@@ -1,0 +1,311 @@
+{% extends "root/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // AJAX form submission
+        $('#assessmentForm').submit(function(event) {
+            event.preventDefault(); // Prevent default form submission
+            var formData = new FormData(this);
+
+            // Disable submit button and show loading indicator
+            var submitButton = $(this).find('button[type="submit"]');
+            submitButton.prop('disabled', true).addClass('opacity-50 pointer-events-none');
+            showLoadingIndicator();
+
+            $.ajax({
+                type: 'POST',
+                url: '{% url "process-assessment" %}',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    // Enable submit button and hide loading indicator on success
+                    submitButton.prop('disabled', false).removeClass('opacity-50 pointer-events-none');
+                    hideLoadingIndicator();
+
+                    if (response.status === 'success') {
+                        // Redirect to workout page
+                        window.location.href = '/workout/';
+                    } else {
+                        // Handle error response here
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    // Enable submit button and hide loading indicator on error
+                    submitButton.prop('disabled', false).removeClass('opacity-50 pointer-events-none');
+                    hideLoadingIndicator();
+
+                    alert('Error: ' + error);
+                }
+            });
+        });
+
+        // Function to show loading indicator
+        function showLoadingIndicator() {
+            $('#loading-overlay').show();
+        }
+
+        // Function to hide loading indicator
+        function hideLoadingIndicator() {
+            $('#loading-overlay').hide();
+        }
+
+        // Existing steps setup and functions (kept as before)
+        var bmi = 0;
+        $('#step2').hide();
+        $('#step3').hide();
+        $('#step4').hide();
+        $('#bmi-info').hide();
+        $('#tools-image').hide();
+
+        $('#nextToStep2').click(function() {
+            $('#step1').hide();
+            $('#step2').show();
+        });
+
+        $('#nextToStep3').click(function() {
+            $('#step2').hide();
+            $('#step3').show();
+            calculateBMI();
+        });
+
+        $('#nextToStep4').click(function() {
+            $('#step3').hide();
+            $('#step4').show();
+            showSummary();
+        });
+
+        function calculateBMI() {
+            var heightFt = parseFloat($('#id_height_ft').val());
+            var heightIn = parseFloat($('#id_height_in').val());
+            var heightCm = (heightFt * 30.48) + (heightIn * 2.54);
+            var weight = parseFloat($('#id_weight_kg').val());
+            bmi = weight / ((heightCm / 100) * (heightCm / 100));
+            $('#id_bmi').val(bmi.toFixed(2));
+            if (!isNaN(bmi)) {
+                $('#bmi-info').show();
+                $('#bmi-value').text(bmi.toFixed(2));
+                if (bmi < 18.5) {
+                    $('#bmi-status').text('Underweight');
+                } else if (bmi >= 18.5 && bmi < 24.9) {
+                    $('#bmi-status').text('Normal weight');
+                } else if (bmi >= 25 && bmi < 29.9) {
+                    $('#bmi-status').text('Overweight');
+                } else {
+                    $('#bmi-status').text('Obesity');
+                }
+            }
+        }
+
+        $('#haveTools').click(function() {
+            $('#tools-image').show();
+            $('#nextToStep4').show();
+        });
+
+        $('#noTools').click(function() {
+            $('#tools-image').hide();
+            $('#nextToStep4').show();
+        });
+
+        function showSummary() {
+            $('#summary-gender').text($('#id_gender').val());
+            $('#summary-height').text($('#id_height_ft').val() + ' ft ' + $('#id_height_in').val() + ' in');
+            $('#summary-weight').text($('#id_weight_kg').val() + ' kg');
+            $('#summary-age').text($('#id_age').val());
+            $('#summary-bmi').text(bmi.toFixed(2));
+            $('#summary-goal').text($('#id_goal').val());
+            $('#summary-workout-preferences').text($('#id_workout_preferences').val());
+            $('#summary-training-days').text($('#id_training_days_per_week').val());
+
+            var personImage = $('#id_person_image')[0].files[0];
+            if (personImage) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#summary-person-image').attr('src', e.target.result).show();
+                };
+                reader.readAsDataURL(personImage);
+            }
+
+            var toolsImage = $('#id_tools_image')[0].files[0];
+            if (toolsImage) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#summary-tools-image').attr('src', e.target.result).show();
+                };
+                reader.readAsDataURL(toolsImage);
+            }
+        }
+    });
+</script>
+
+<style>
+    /* Loading overlay styles (kept as before) */
+    #loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
+
+    .lds-ellipsis {
+        display: inline-block;
+        position: relative;
+        width: 64px;
+        height: 64px;
+    }
+
+    .lds-ellipsis div {
+        position: absolute;
+        top: 27px;
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        background: #fff;
+        animation-timing-function: cubic-bezier(0, 1, 1, 0);
+    }
+
+    .lds-ellipsis div:nth-child(1) {
+        left: 6px;
+        animation: lds-ellipsis1 0.6s infinite;
+    }
+
+    .lds-ellipsis div:nth-child(2) {
+        left: 6px;
+        animation: lds-ellipsis2 0.6s infinite;
+    }
+
+    .lds-ellipsis div:nth-child(3) {
+        left: 26px;
+        animation: lds-ellipsis2 0.6s infinite;
+    }
+
+    .lds-ellipsis div:nth-child(4) {
+        left: 45px;
+        animation: lds-ellipsis3 0.6s infinite;
+    }
+
+    @keyframes lds-ellipsis1 {
+        0% {
+            transform: scale(0);
+        }
+
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    @keyframes lds-ellipsis3 {
+        0% {
+            transform: scale(1);
+        }
+
+        100% {
+            transform: scale(0);
+        }
+    }
+
+    @keyframes lds-ellipsis2 {
+        0% {
+            transform: translate(0, 0);
+        }
+
+        100% {
+            transform: translate(19px, 0);
+        }
+    }
+</style>
+
+<section class="py-8">
+    <div class="border rounded-lg shadow-md p-4 flex flex-col justify-center mx-auto w-full">
+        <h2 class="mt-4 mb-4 text-center text-gradient font-black text-3xl">My Details</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 justify-end w-full p-4 rounded-md shadow-md text-white">
+           
+            <div>
+                <img src="/media/{{l.gif}}" class="w-96 flex justify-center mx-auto rounded-md h-96 object-fit" alt="{{l.name}}" >
+            </div>
+            <div class="text-left">
+                <form id="assessmentForm" method="POST" enctype="multipart/form-data" class="space-y-4">
+                    {% csrf_token %}
+                    <div id="step1">
+                        {{ form.gender|as_crispy_field }}
+                        <button type="button" id="nextToStep2" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg">Next</button>
+                    </div>
+                    <div id="step2">
+                        {{ form.height_ft|as_crispy_field }}
+                        {{ form.height_in|as_crispy_field }}
+                        {{ form.weight_kg|as_crispy_field }}
+                        {{ form.age|as_crispy_field }}
+                        <button type="button" id="nextToStep3" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg">Next</button>
+                    </div>
+                    <div id="step3">
+                        <div id="bmi-info">
+                            <p>Your BMI is <span id="bmi-value"></span> which indicates <span id="bmi-status"></span>.</p>
+                            {{ form.person_image|as_crispy_field }}
+                            <img id="uploadedPersonImage" src="#" alt="Uploaded Person Image" style="display:none;" class="w-40 h-40 object-cover mb-4 rounded-lg">
+                        </div>
+                        <button type="button" id="haveTools" class="bg-green-500 w-full mb-2 mt-2 hover:bg-green-600 text-white py-2 px-4 rounded-lg">I have gym tools</button>
+                        <button type="button" id="noTools" class="bg-red-500 w-full mb-2 mt-2 hover:bg-red-600 text-white py-2 px-4 rounded-lg">I don't have gym tools</button>
+                        <div id="tools-image">
+                            {{ form.tools_image|as_crispy_field }}
+                            <img id="uploadedImage" src="#" alt="Uploaded Tools Image" style="display:none;" class="w-40 h-40 object-cover mb-4 rounded-lg">
+                        </div>
+                        <button type="button" id="nextToStep4" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg" style="display:none;">Next</button>
+                    </div>
+                    <div id="step4">
+                        <h3 class="text-2xl">Summary</h3>
+                        <div class="mb-4">
+                            {{ form.goal|as_crispy_field }}
+                        </div>
+                        <div class="mb-4">
+                            {{ form.target_weight|as_crispy_field }}
+                        </div>
+                        <div class="mb-4">
+                            {{ form.target_body_part|as_crispy_field }}
+                        </div>
+                        <div class="mb-4">
+                            {{ form.target_muscle|as_crispy_field }}
+                        </div>
+                        <div class="mb-4">
+                            {{ form.workout_preferences|as_crispy_field }}
+                        </div>
+                        <div class="mb-4">
+                            {{ form.training_days_per_week|as_crispy_field }}
+                        </div>
+                        <div class="mb-4">
+                            {{ form.whatsapp|as_crispy_field }}
+                        </div>
+                        <p>Gender: <span id="summary-gender"></span></p>
+                        <p>Height: <span id="summary-height"></span></p>
+                        <p>Weight: <span id="summary-weight"></span></p>
+                        <p>Age: <span id="summary-age"></span></p>
+                        <p>BMI: <span id="summary-bmi"></span></p>
+                        <p>Goal: <span id="summary-goal"></span></p>
+                        <p>Workout Preferences: <span id="summary-workout-preferences"></span></p>
+                        <p>Training Days per Week: <span id="summary-training-days"></span></p>
+                        <img id="summary-person-image" src="#" alt="Person Image" style="display:none;" class="w-40 h-40 object-cover mb-4 rounded-lg">
+                        <img id="summary-tools-image" src="#" alt="Tools Image" style="display:none;" class="w-40 h-40 object-cover mb-4 rounded-lg">
+                        <button type="submit" class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg">Submit</button>
+                    </div>
+                </form>
+            </div>
+         
+        </div>
+    </div>
+
+    <!-- Loading overlay -->
+    <div id="loading-overlay" class="flex items-center justify-center mx-auto">
+        <div class="lds-ellipsis self-center"><div></div><div></div><div></div><div></div></div>
+    </div>
+</section>
+
+{% endblock content %}

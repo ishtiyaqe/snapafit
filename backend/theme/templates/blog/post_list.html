@@ -1,0 +1,25 @@
+{% extends "root/base.html" %} {% block content %}
+<h1 class="text-3xl md:text-5xl font-bold text-gradient mb-5 2xl:whitespace-nowrap">Blogs</h1>
+<div class="grid lg:grid-cols-3 grid-cols-1 gap-6 py-10 p-4 mb-10">
+  
+  {% for post in posts %}
+  <div class="rounded-md relative shadow-md bg-white">
+    <a href="{% url 'post-detail' pk=post.pk %}">
+      <img
+        class="h-64 w-full object-cover rounded-lg shadow-md"
+        src="{{ post.image.url }}"
+        alt="{{ post.title }}"
+      />
+      <div
+        class="p-4 absolute bottom-0 left-0 rounded-b-lg bg-gray-900 bg-opacity-75 w-full"
+      >
+        <h2 class="text-2xl mt-2 mb-2 text-white font-semibold">
+          {{ post.title }}
+        </h2>
+        <p class="text-xs text-white font-semibold">{{ post.date_posted }}</p>
+      </div>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+{% endblock content %}

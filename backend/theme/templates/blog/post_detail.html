@@ -1,0 +1,19 @@
+{% extends "root/base.html" %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 py-8">
+    <img
+        class="h-64 w-full object-cover mb-4 rounded-lg shadow-md"
+        src="{{ post.image.url }}"
+        alt="{{ post.title }}"
+      />
+    <div class="mb-10">
+        <h1 class="text-3xl md:text-5xl font-bold text-gradient mb-5 2xl:whitespace-nowrap">{{ post.title }}</h1>
+
+    <p class="text-gray-600 text-sm mb-2">{{ post.date_posted }}</p>
+    </div>
+    <div class="prose max-w-none mb-4">
+        {{ post.content|safe }}
+    </div>
+</div>
+{% endblock content %}

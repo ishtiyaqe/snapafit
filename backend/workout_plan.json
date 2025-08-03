@@ -1,0 +1,59 @@
+{
+    "Workout Plan": {
+        "Day": "Monday",
+        "Warm Up": [
+            {
+                "Exercise": "Jumping Jacks",
+                "Duration": "5 minutes",
+                "Equipment": "Bodyweight"
+            },
+            {
+                "Exercise": "Jog in place",
+                "Duration": "5 minutes",
+                "Equipment": "Bodyweight"
+            }
+        ],
+        "Main Workout": [
+            {
+                "Exercise": "Barbell Bench Press",
+                "Sets": 4,
+                "Reps": 8,
+                "Equipment": "Barbell",
+                "Target Muscle": "Chest"
+            },
+            {
+                "Exercise": "Dumbbell Shoulder Press",
+                "Sets": 4,
+                "Reps": 8,
+                "Equipment": "Dumbbells",
+                "Target Muscle": "Shoulders"
+            },
+            {
+                "Exercise": "Kettlebell Swing",
+                "Sets": 4,
+                "Reps": 12,
+                "Equipment": "Kettlebell",
+                "Target Muscle": "Glutes, Quadriceps, Core"
+            },
+            {
+                "Exercise": "Cable Tricep Pushdown",
+                "Sets": 4,
+                "Reps": 12,
+                "Equipment": "Cable",
+                "Target Muscle": "Triceps"
+            }
+        ],
+        "Cool Down": [
+            {
+                "Exercise": "Child's Pose",
+                "Duration": "5 minutes",
+                "Equipment": "Bodyweight"
+            },
+            {
+                "Exercise": "Butterfly Stretch",
+                "Duration": "5 minutes",
+                "Equipment": "Bodyweight"
+            }
+        ]
+    }
+}

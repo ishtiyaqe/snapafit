@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.log
+*.env
+*.pot
+*.pyc
+*.pyo
+*.pyd
+backend/db.sqlite3
+backend/venv/
+backend/env/
+*.egg-info/
+
+
+# VSCode settings
+.vscode/
+
+# React / Vite frontend
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+.env.local
+.env.development
+.env.production
+*.log
+

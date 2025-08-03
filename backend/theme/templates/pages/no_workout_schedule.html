@@ -1,0 +1,11 @@
+{% extends "root/base.html" %}
+
+{% block content %}
+<section class="py-8">
+    <div class="border rounded-lg shadow-md p-4 flex flex-col justify-center mx-auto w-full">
+        <h1 class="text-3xl mb-4">No Workout Schedule Found</h1>
+        <p>It seems like you haven't set up a workout schedule yet. Please set up your workout schedule through the assessment process.</p>
+        <a href="{% url 'user-assessment' %}" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg mt-4 inline-block">Go to Assessment Page</a>
+    </div>
+</section>
+{% endblock content %}

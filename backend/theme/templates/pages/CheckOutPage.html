@@ -1,0 +1,81 @@
+{% extends "root/base.html" %}
+{% load static %}
+
+{% block content %}
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<section class="py-8">
+    <h1 class="text-3xl mb-4">Checkout</h1>
+    <div class="border rounded-lg shadow-md p-4 flex">
+        {% if package.image %}
+            <img src="{{ package.image.url }}" alt="{{ package.name }}" class="w-40 h-40 mr-4 object-cover mb-4 rounded-lg">
+        {% endif %}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 justify-end w-full">
+            <div class="text-left">
+                <h2 class="text-2xl font-bold mb-2">{{ package.name }}</h2>
+                <p class="text-lg">{{ package.duration_months }} months</p>
+                <p class="text-lg" id="price">Price: ${{ package.discounted_price_usd }}</p>
+                <input type="text" id="coupon_code" placeholder="Enter coupon code">
+                <button id="apply_coupon" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg">
+                    Apply Coupon
+                </button>
+            </div>
+            <div class="text-left">
+                <!-- PayPal Pay Now Button -->
+                <button id="paypal-checkout-button" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg">
+                    Pay with PayPal
+                </button>
+                <!-- End PayPal Form -->
+                <form id="paypal-form" action="{% url 'create_payment' %}" method="post" style="display: none;">
+                    {% csrf_token %}
+                    <input type="hidden" id="v_cupon_code" name="v_cupon_code" value="">
+                    <input type="hidden" id="pakage_id" name="pakage_id" value="{{ package.id }}">
+                    <input type="hidden" id="coupon_price" name="coupon_price" value="{{ package.discounted_price_usd }}">
+                    <button type="submit">Redirecting to Pay with PayPal...</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    document.getElementById('apply_coupon').addEventListener('click', function () {
+        var coupon_code = document.getElementById('coupon_code').value;
+        var package_id = '{{ package.id }}';  // Assuming package.id is correctly rendered
+
+        fetch("{% url 'validate_coupon' %}", {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+            body: JSON.stringify({
+                coupon_code: coupon_code,
+                package_id: package_id
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.valid) {
+                document.getElementById('price').innerText = 'Price: $' + data.new_price;
+                // Update nee_price globally or within a scope where it's accessible
+                window.nee_price = data.new_price;
+                document.getElementById('v_cupon_code').value = coupon_code;
+                document.getElementById('coupon_price').value = data.new_price;
+            } else {
+                alert(data.message);
+                document.getElementById('coupon_price').value = data.new_price;
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    });
+
+    document.getElementById('paypal-checkout-button').addEventListener('click', function () {
+        // Display the hidden PayPal form and submit it
+        document.getElementById('paypal-form').style.display = 'block';
+        document.getElementById('paypal-form').submit();
+    });
+</script>
+
+{% endblock %}

@@ -1,0 +1,18 @@
+<!-- templates/send_whatsapp_message.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Send WhatsApp Message</title>
+</head>
+<body>
+    <h1>Send WhatsApp Message</h1>
+    <form method="post" action="{% url 'send_custom_whatsapp_message' %}">
+        {% csrf_token %}
+        <label for="recipient_number">Recipient Number:</label><br>
+        <input type="text" id="recipient_number" name="recipient_number" required><br><br>
+        <label for="message_text">Message Text:</label><br>
+        <textarea id="message_text" name="message_text" required></textarea><br><br>
+        <button type="submit">Send Message</button>
+    </form>
+</body>
+</html>

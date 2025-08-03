@@ -1,0 +1,15 @@
+{% extends "root/base.html" %}
+{% load static %}
+{% block content %}
+<section class="py-8">
+    <h1 class="text-3xl mb-4">Purchase a Gym Package</h1>
+    <div class="border rounded-lg shadow-md p-4 flex flex-col space-y-4">
+        {% if order %}
+        <p>Your current gym package has expired. Please purchase a new package to continue.</p>
+        {% else %}
+        <p>You do not have an active gym package. Please purchase one to access workout schedules.</p>
+        {% endif %}
+        <a href="{% url 'Price_page' %}" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg">Purchase a Package</a>
+    </div>
+</section>
+{% endblock content %}

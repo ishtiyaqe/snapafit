@@ -1,0 +1,1055 @@
+{% extends "root/base.html" %}
+{% load custom_filters %}
+{% load static %}
+{% block content %}
+<style>
+   /* Styles for the popup */
+   .popup {
+   display: none;
+   position: fixed;
+   top: 50%;
+   left: 50%;
+   transform: translate(-50%, -50%);
+   background-color: #fefefe;
+   z-index: 1000000000000000; /* Ensure the popup is on top */
+   border: 1px solid #888;
+   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+   overflow: auto;
+   width: 80%;
+   max-width: 600px;
+   border-radius: 8px;
+   }
+   .popup-content {
+   padding: 20px;
+   }
+   .close {
+   color: #aaa;
+   float: right;
+   font-size: 28px;
+   font-weight: bold;
+   }
+   .close:hover,
+   .close:focus {
+   color: black;
+   text-decoration: none;
+   cursor: pointer;
+   }
+   /* Blurred background effect */
+   .blur-background {
+   filter: blur(4px);
+   pointer-events: none; /* Prevents clicks on blurred background */
+   {% comment %} z-index: 9999; /* Ensure the blurred background is below the popup */ {% endcomment %}
+   }
+
+   .instruction-content {
+    max-height: 4.5em; /* Adjust based on the number of lines you want to show */
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.read-more-btn {
+    display: block;
+    margin: 1em auto;
+    cursor: pointer;
+}
+</style>
+<div id="snackbar" class="bg-green-500 p-2 font-semibold fixed bottom-4 right-4 z-50 rounded-md shadow-md text-white hidden"></div>
+<section class="py-8 p-4 ">
+  
+
+   <h1 class="text-3xl md:text-5xl font-bold text-gradient mb-5 2xl:whitespace-nowrap">Workout Schedule</h1>
+   {% if remaining_days %}
+   <p class="text-sm font-semibold text-gray-500">Your current package have left {{ remaining_days }} Day(s).</p>
+   {% else %}
+   <p class="text-lg">You do not have an active gym package or your package has expired. Please purchase a new package to access your workout schedules.</p>
+   <a href="{% url 'Price_page' %}" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg mt-4 inline-block">Purchase a Gym Package</a>
+   {% endif %}
+   <!-- WOrkout Hero Sectiom -->
+   <div class="grid lg:grid-cols-2 grid-cols-1 gap-4 mt-6 mb-6">
+<div>
+    <img src="/media/{{wr.gif}}" class="rounded-lg shadow-md" alt="{{wr.name}}" >
+</div>
+<div>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <div class="w-full bg-white h-40 rounded-lg shadow-md p-4 md:p-6">
+        <div id="column-chart"></div>
+    </div>
+    
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        fetch('/chart/get_workout_data/')
+          .then(response => response.json())
+          .then(data => {
+            const options = {
+              colors: ["#1A56DB", "#FDBA8C"],
+              series: [
+                {
+                  name: "Calories Burned",
+                  data: data.calories.map((value, index) => ({ x: data.days[index], y: value })),
+                },
+                {
+                  name: "Exercises Completed",
+                  data: data.exercises.map((value, index) => ({ x: data.days[index], y: value })),
+                },
+              ],
+              chart: {
+                type: "bar",
+                height: 120,
+                fontFamily: "Inter, sans-serif",
+                toolbar: {
+                  show: false,
+                },
+              },
+              plotOptions: {
+                bar: {
+                  horizontal: false,
+                  columnWidth: "70%",
+                  borderRadiusApplication: "end",
+                  borderRadius: 8,
+                },
+              },
+              tooltip: {
+                shared: true,
+                intersect: false,
+                style: {
+                  fontFamily: "Inter, sans-serif",
+                },
+              },
+              states: {
+                hover: {
+                  filter: {
+                    type: "darken",
+                    value: 1,
+                  },
+                },
+              },
+              stroke: {
+                show: true,
+                width: 0,
+                colors: ["transparent"],
+              },
+              grid: {
+                show: false,
+                strokeDashArray: 4,
+                padding: {
+                  left: 2,
+                  right: 2,
+                  top: -14,
+                },
+              },
+              dataLabels: {
+                enabled: false,
+              },
+              legend: {
+                show: false,
+              },
+              xaxis: {
+                floating: false,
+                labels: {
+                  show: true,
+                  style: {
+                    fontFamily: "Inter, sans-serif",
+                    cssClass: 'text-xs font-normal fill-gray-500 dark:fill-gray-400',
+                  },
+                },
+                axisBorder: {
+                  show: false,
+                },
+                axisTicks: {
+                  show: false,
+                },
+              },
+              yaxis: {
+                show: false,
+              },
+              fill: {
+                opacity: 1,
+              },
+            };
+    
+            if (document.getElementById("column-chart") && typeof ApexCharts !== 'undefined') {
+              const chart = new ApexCharts(document.getElementById("column-chart"), options);
+              chart.render();
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching workout data:', error);
+          });
+      });
+    </script>
+    
+      
+    <div id="progress-container">
+        <div class="relative h-5 rounded-full overflow-hidden mt-10 mb-4 bg-gray-300 p-3">
+            <div class="absolute inset-0 flex justify-between items-center px-2 z-50 text-white ">
+                <div>Calories Burn Today <span class="value" id="calories-burn-today-value">0</span> kcal</div>
+                <div>🔥</div>
+            </div>
+            <div id="calories-burn-today" class="absolute top-0 bottom-0 left-0 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 progress-bar " style="width:0%">
+            </div>
+        </div>
+        <div class="relative h-5 rounded-full overflow-hidden mt-4 mb-4 bg-gray-300 p-3">
+            <div class="absolute inset-0 flex justify-between items-center px-2 z-50 text-white">
+                <div>Calories Burn This Month <span class="value" id="calories-burn-this-month-value">0</span> kcal</div>
+                <div>🔥</div>
+            </div>
+            <div id="calories-burn-this-month" class="absolute top-0 bottom-0 left-0 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 progress-bar" style="width:0%">
+            </div>
+        </div>
+        <div class="relative h-5 rounded-full overflow-hidden mt-4 mb-4 bg-gray-300 p-3">
+            <div class="absolute inset-0 flex justify-between items-center px-2 z-50 text-white">
+                <div>Total Exercises Taken Today <span class="value" id="total-exercises-today-value">0</span></div>
+                <div>🔥</div>
+            </div>
+            <div id="total-exercises-today" class="absolute top-0 bottom-0 left-0 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 progress-bar" style="width:0%">
+            </div>
+        </div>
+        <div class="relative h-5 rounded-full overflow-hidden mt-4 mb-4 bg-gray-300 p-3">
+            <div class="absolute inset-0 flex justify-between items-center px-2 z-50 text-white">
+                <div>Total Exercises Taken This Month <span class="value" id="total-exercises-this-month-value">0</span></div>
+                <div>🔥</div>
+            </div>
+            <div id="total-exercises-this-month" class="absolute top-0 bottom-0 left-0 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 progress-bar" style="width:0%">
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            fetch('/progress-data/')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                const caloriesToday = data.calories_today;
+                const caloriesMonth = data.calories_month;
+                const exercisesToday = data.exercises_today;
+                const exercisesMonth = data.exercises_month;
+    
+                console.log(caloriesToday);
+                console.log(caloriesMonth);
+                console.log(exercisesToday);
+                console.log(exercisesMonth);
+    
+                // Update HTML elements with fetched data
+                document.querySelector("#calories-burn-today-value").textContent = caloriesToday;
+                document.querySelector("#calories-burn-today").style.width = (caloriesToday / 1000) * 100 + '%';
+    
+                document.querySelector("#calories-burn-this-month-value").textContent = caloriesMonth;
+                document.querySelector("#calories-burn-this-month").style.width = (caloriesMonth / 1000) * 100 + '%';
+    
+                document.querySelector("#total-exercises-today-value").textContent = exercisesToday;
+                document.querySelector("#total-exercises-today").style.width = (exercisesToday / 100) * 100 + '%';
+    
+                document.querySelector("#total-exercises-this-month-value").textContent = exercisesMonth;
+                document.querySelector("#total-exercises-this-month").style.width = (exercisesMonth / 100) * 100 + '%';
+            })
+            .catch(error => {
+                console.error('Error fetching progress data:', error);
+            });
+        });
+    </script>
+    
+    
+    
+</div>
+   </div>
+   <!-- Display existing workout schedule -->
+   <div class="border rounded-lg shadow-md p-4 mt-4">
+      <!-- Warm-Up Section -->
+      <div class="mb-4">
+         <h4 id="warm-up-toggle" class="cursor-pointer text-xl font-semibold mb-6 rounded-md shadow-md p-4 border">Warm-Up (10-15 minutes)</h4>
+         <div  id="warm-up-content" class="grid grid-cols-1 md:grid-cols-3 gap-4 ">
+            {% for exercise in workout_data|get_item:"Warm-Up (10-15 minutes)" %}
+            <div class="p-4 bg-gray-100 rounded-lg relative">
+                {% for name, description in exercise.items %}
+                <h4 class="text-sm m-4 text-center font-bold capitalize">{{ name }}</h4>
+                <div id="exercise-details-{{ name|slugify }}"></div>
+                <!-- Hidden div to store the description JSON data -->
+                <div id="description-{{ name|slugify }}" class="hidden">{{ description|json_script:"description_" }}</div>
+                <script>
+                    $(document).ready(function() {
+                        console.log("Document is ready. Fetching details for {{ name }}.");
+
+                        var count = 0; 
+                        $.ajax({
+                            url: "{% url 'exercise_details' %}",
+                            type: 'GET',
+                            data: { exercise_name: "{{ name }}" },
+                            beforeSend: function() {
+                                // Display loading animation
+                                $('#exercise-details-{{ name|slugify }}').html('<div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-500"></div>');
+                            },
+                            success: function(response) {
+                                // Render exercise details on success
+                                $('#exercise-details-{{ name|slugify }}').html(renderExerciseDetails(response));
+                                checkWorkoutStatus('{{ name }}');  // Check the workout status after rendering details
+                            },
+                            error: function(xhr, status, error) {
+                                console.error('Error fetching exercise details:', error);
+                                $('#exercise-details-{{ name|slugify }}').html('<p>Error fetching exercise details.</p>');
+                            }
+                        });
+
+                        function renderExerciseDetails(data) {
+                            // Customize how exercise details are displayed
+                            var html = '<div class="grid grid-cols-1 gap-2">';
+                            html += '<img class="rounded-md shadow-md w-full h-80" src="' + data.image +  '" alt="'+ data.name +'">';
+                            html += '<div class="text-center font-semibold capitalize">';
+                            
+                            // Retrieve and parse the description JSON data from the hidden div
+                            var descriptionData = JSON.parse(document.getElementById('description-{{ name|slugify }}').textContent);
+                            
+                            console.log(descriptionData);
+                            
+                            var counts = 0; 
+                            for (var key in descriptionData) {
+                                if (descriptionData.hasOwnProperty(key)) {
+                                    if (key.toLowerCase().includes('calories')) { // Check if key contains 'calories'
+                                        var cleanName = '{{ name }}'.replace(/\s+/g, '');
+                                        var calorieId = 'calories-' + cleanName.toLowerCase();  // Generate dynamic ID
+                                        html += '<div id="' + calorieId + '">' + descriptionData[key] + '</div>'; // Add calorie data with dynamic ID
+                                    } else {
+                                        html += '<div>' + key + ': ' + descriptionData[key] + '</div>';
+                                    }
+                                    counts++;
+                                }
+                            }
+                            html += '</div>';
+                            html += '<div class="text-center text-sm capitalize">Equipment You Need: ' + data.equipment +  '</div>';
+                            html += '<div class="text-center text-sm capitalize">Target Body Part: ' + data.target +  '</div>';
+                            html += '<div class="text-center font-semibold">Instruction</div>';
+                            html += '<div class="text-sm instruction-content" id="instruction-content-{{ name|slugify }}">' + data.instructions + '</div>';
+                            html += '<div class="flex justify-between">';
+                            html += '<button id="read-more-btn-{{ name|slugify }}" class="bg-gradient-to-tr from-pink-600 to-violet-900 hover:to-pink-600 hover:from-violet-900 text-white font-bold text-lg p-2 rounded-lg shadow-md text-center mx-auto cursor-pointer">Read More</button>';
+                            html += '<div id="start-finish-btn-{{ name|slugify }}" class="bg-gradient-to-tr from-pink-600 to-violet-900 hover:to-pink-600 hover:from-violet-900 text-white font-bold text-lg p-2 rounded-lg shadow-md text-center mx-auto cursor-pointer">Start Now</div>';
+                            html += '</div>';
+                            html += '</div>';
+                            
+                            return html;
+                        }
+
+                        function checkWorkoutStatus(name) {
+                            $.ajax({
+                                url: "{% url 'check_workout_status' %}",
+                                type: 'GET',
+                                data: { workout_name: name,day_number: '{{ day_number }}' },
+                                success: function(response) {
+                                    if (response.completed) {
+                                        $('#start-finish-btn-' + name.toLowerCase().replace(/\s+/g, '-')).text(' Completed').prop('disabled', true).removeClass('bg-gradient-to-tr from-pink-600 to-violet-900 hover:to-pink-600 hover:from-violet-900').addClass('bg-gray-400');
+                                    }
+                                },
+                                error: function(xhr, status, error) {
+                                    console.error('Error checking workout status:', error);
+                                }
+                            });
+                        }
+
+                        $(document).on('click', '#read-more-btn-{{ name|slugify }}', function() {
+                            var btn = $(this);
+                            var instructionContent = $('#instruction-content-{{ name|slugify }}');
+                            if (btn.text() === 'Read More') {
+                                instructionContent.css('max-height', 'none');
+                                btn.text('Read Less');
+                            } else {
+                                instructionContent.css('max-height', '4.5em'); // Adjust based on the number of lines you want to show
+                                btn.text('Read More');
+                            }
+                        });
+
+                        $(document).on('click', '#start-finish-btn-{{ name|slugify }}', function() {
+                            var btn = $(this);
+                            if (btn.text() === 'Start Now') {
+                                btn.text('Workout Finish');
+                            } else {
+                                var cleanName = '{{ name }}'.replace(/\s+/g, '');
+                                var calorieId = 'calories-' + cleanName.toLowerCase();
+                                var calories = $('#'+calorieId).text(); // Extract calories value
+                                console.log('#'+calorieId)
+                                console.log(calories)
+                                console.log(calories)
+                                console.log($('#'+calorieId).length); // Check if element exists
+                                console.log($('#'+calorieId).text());
+                                $.ajax({
+                                    url: "{% url 'complete_workout' %}",  // Update this URL with the correct view URL
+                                    type: 'POST',
+                                    data: {
+                                        day_number: '{{ day_number }}',  // Pass the correct day number
+                                        workout_name: '{{ name }}',  // Pass the correct day number
+                                        calories: calories,  // Pass the correct day number
+                                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                                    },
+                                    success: function(response) {
+                                        console.log('Workout marked as completed.');
+                                        btn.text(' Completed');
+                                        btn.prop('disabled', true); // Disable button after completion
+                                        btn.removeClass('bg-gradient-to-tr from-pink-600 to-violet-900 hover:to-pink-600 hover:from-violet-900').addClass('bg-gray-400');
+                                        showSnackbar(response.message); // Show snackbar on success
+                                    },
+                                    error: function(xhr, status, error) {
+                                        console.error('Error marking workout as completed:', error);
+                                    }
+                                });
+                            }
+                        });
+
+                        function showSnackbar(message) {
+                            var snackbar = document.getElementById('snackbar');
+                            snackbar.textContent = message;
+                            snackbar.className =  snackbar.className.replace('hidden', 'hd');
+                            setTimeout(function() {
+                                snackbar.className = snackbar.className.replace('hd', 'hidden');
+                            }, 3000);
+                        }
+                    });
+                </script>
+                
+                {% endfor %}
+
+                
+                
+            </div>
+            {% endfor %}
+         </div>
+         <script>
+            $(document).ready(function() {
+                $('#warm-up-toggle').click(function() {
+                    $('#warm-up-content').toggleClass('hidden');
+                });
+            });
+         </script>
+      </div>
+      {% if "Exercises (Upper body focus)" in workout_data %}
+      <div  class="mb-4">
+         <h3 id="warm-ex-up-toggle" class="cursor-pointer text-xl font-semibold mb-6 rounded-md shadow-md p-4 border">Exercises (Upperbody Body)</h3>
+         <div  id="warm-ex-up-content" class="grid grid-cols-1 lg:grid-cols-3 gap-4 hidden">
+            {% for exercise in workout_data|get_item:"Exercises (Upper body focus)" %}
+            <div class="p-4 bg-gray-100 rounded-lg">
+                {% for name, description in exercise.items %}
+                <h4 class="text-sm m-4 text-center font-bold capitalize">{{ name }}</h4>
+                <div id="exercise-details-{{ name|slugify }}"></div>
+                <!-- Hidden div to store the description JSON data -->
+                <div id="description-{{ name|slugify }}" class="hidden">{{ description|json_script:"description_" }}</div>
+                <script>
+                    $(document).ready(function() {
+                        console.log("Document is ready. Fetching details for {{ name }}.");
+
+                        var count = 0; 
+                        $.ajax({
+                            url: "{% url 'exercise_details' %}",
+                            type: 'GET',
+                            data: { exercise_name: "{{ name }}" },
+                            beforeSend: function() {
+                                // Display loading animation
+                                $('#exercise-details-{{ name|slugify }}').html('<div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-500"></div>');
+                            },
+                            success: function(response) {
+                                // Render exercise details on success
+                                $('#exercise-details-{{ name|slugify }}').html(renderExerciseDetails(response));
+                                checkWorkoutStatus('{{ name }}');  // Check the workout status after rendering details
+                            },
+                            error: function(xhr, status, error) {
+                                console.error('Error fetching exercise details:', error);
+                                $('#exercise-details-{{ name|slugify }}').html('<p>Error fetching exercise details.</p>');
+                            }
+                        });
+
+                        function renderExerciseDetails(data) {
+                            // Customize how exercise details are displayed
+                            var html = '<div class="grid grid-cols-1 gap-2">';
+                            html += '<img class="rounded-md shadow-md w-full h-80" src="' + data.image +  '" alt="'+ data.name +'">';
+                            html += '<div class="text-center font-semibold capitalize">';
+                            
+                            // Retrieve and parse the description JSON data from the hidden div
+                            var descriptionData = JSON.parse(document.getElementById('description-{{ name|slugify }}').textContent);
+                            
+                            console.log(descriptionData);
+                            
+                            var counts = 0; 
+                            for (var key in descriptionData) {
+                                if (descriptionData.hasOwnProperty(key)) {
+                                    if (key.toLowerCase().includes('calories')) { // Check if key contains 'calories'
+                                        var cleanName = '{{ name }}'.replace(/\s+/g, '');
+                                        var calorieId = 'calories-' + cleanName.toLowerCase();  // Generate dynamic ID
+                                        html += '<div id="' + calorieId + '">' + descriptionData[key] + '</div>'; // Add calorie data with dynamic ID
+                                    } else {
+                                        html += '<div>' + key + ': ' + descriptionData[key] + '</div>';
+                                    }
+                                    counts++;
+                                }
+                            }
+                            html += '</div>';
+                            html += '<div class="text-center text-sm capitalize">Equipment You Need: ' + data.equipment +  '</div>';
+                            html += '<div class="text-center text-sm capitalize">Target Body Part: ' + data.target +  '</div>';
+                            html += '<div class="text-center font-semibold">Instruction</div>';
+                            html += '<div class="text-sm instruction-content" id="instruction-content-{{ name|slugify }}">' + data.instructions + '</div>';
+                            html += '<div class="flex justify-between">';
+                            html += '<button id="read-more-btn-{{ name|slugify }}" class="bg-gradient-to-tr from-pink-600 to-violet-900 hover:to-pink-600 hover:from-violet-900 text-white font-bold text-lg p-2 rounded-lg shadow-md text-center mx-auto cursor-pointer">Read More</button>';
+                            html += '<div id="start-finish-btn-{{ name|slugify }}" class="bg-gradient-to-tr from-pink-600 to-violet-900 hover:to-pink-600 hover:from-violet-900 text-white font-bold text-lg p-2 rounded-lg shadow-md text-center mx-auto cursor-pointer">Start Now</div>';
+                            html += '</div>';
+                            html += '</div>';
+                            
+                            return html;
+                        }
+
+                        function checkWorkoutStatus(name) {
+                            $.ajax({
+                                url: "{% url 'check_workout_status' %}",
+                                type: 'GET',
+                                data: { workout_name: name,day_number: '{{ day_number }}' },
+                                success: function(response) {
+                                    if (response.completed) {
+                                        $('#start-finish-btn-' + name.toLowerCase().replace(/\s+/g, '-')).text(' Completed').prop('disabled', true).removeClass('bg-gradient-to-tr from-pink-600 to-violet-900 hover:to-pink-600 hover:from-violet-900').addClass('bg-gray-400');
+                                    }
+                                },
+                                error: function(xhr, status, error) {
+                                    console.error('Error checking workout status:', error);
+                                }
+                            });
+                        }
+
+                        $(document).on('click', '#read-more-btn-{{ name|slugify }}', function() {
+                            var btn = $(this);
+                            var instructionContent = $('#instruction-content-{{ name|slugify }}');
+                            if (btn.text() === 'Read More') {
+                                instructionContent.css('max-height', 'none');
+                                btn.text('Read Less');
+                            } else {
+                                instructionContent.css('max-height', '4.5em'); // Adjust based on the number of lines you want to show
+                                btn.text('Read More');
+                            }
+                        });
+
+                        $(document).on('click', '#start-finish-btn-{{ name|slugify }}', function() {
+                            var btn = $(this);
+                            if (btn.text() === 'Start Now') {
+                                btn.text('Workout Finish');
+                            } else {
+                                var cleanName = '{{ name }}'.replace(/\s+/g, '');
+                                var calorieId = 'calories-' + cleanName.toLowerCase();
+                                var calories = $('#'+calorieId).text(); // Extract calories value
+                                console.log('#'+calorieId)
+                                console.log(calories)
+                                console.log(calories)
+                                console.log($('#'+calorieId).length); // Check if element exists
+                                console.log($('#'+calorieId).text());
+                                $.ajax({
+                                    url: "{% url 'complete_workout' %}",  // Update this URL with the correct view URL
+                                    type: 'POST',
+                                    data: {
+                                        day_number: '{{ day_number }}',  // Pass the correct day number
+                                        workout_name: '{{ name }}',  // Pass the correct day number
+                                        calories: calories,  // Pass the correct day number
+                                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                                    },
+                                    success: function(response) {
+                                        console.log('Workout marked as completed.');
+                                        btn.text(' Completed');
+                                        btn.prop('disabled', true); // Disable button after completion
+                                        btn.removeClass('bg-gradient-to-tr from-pink-600 to-violet-900 hover:to-pink-600 hover:from-violet-900').addClass('bg-gray-400');
+                                        showSnackbar(response.message); // Show snackbar on success
+                                    },
+                                    error: function(xhr, status, error) {
+                                        console.error('Error marking workout as completed:', error);
+                                    }
+                                });
+                            }
+                        });
+
+                        function showSnackbar(message) {
+                            var snackbar = document.getElementById('snackbar');
+                            snackbar.textContent = message;
+                            snackbar.className =  snackbar.className.replace('hidden', 'hd');
+                            setTimeout(function() {
+                                snackbar.className = snackbar.className.replace('hd', 'hidden');
+                            }, 3000);
+                        }
+                    });
+                </script>
+                
+                {% endfor %}
+            </div>
+            {% endfor %}
+         </div>
+      </div>
+      {% elif "Exercises (Lower body focus)" in workout_data %}
+      <div class="mb-4">
+         <h3 id="warm-ex-up-toggle" class="cursor-pointer text-xl font-semibold mb-6 rounded-md shadow-md p-4 border">Exercises (Lower Body)</h3>
+         <div id="warm-ex-up-content" class="grid grid-cols-1 lg:grid-cols-3 gap-4 hidden">
+            {% for exercise in workout_data|get_item:"Exercises (Lower body focus)" %}
+            <div class="p-4 bg-gray-100 rounded-lg">
+                {% for name, description in exercise.items %}
+                <h4 class="text-sm m-4 text-center font-bold capitalize">{{ name }}</h4>
+                <div id="exercise-details-{{ name|slugify }}"></div>
+                <!-- Hidden div to store the description JSON data -->
+                <div id="description-{{ name|slugify }}" class="hidden">{{ description|json_script:"description_" }}</div>
+                <script>
+                    $(document).ready(function() {
+                        console.log("Document is ready. Fetching details for {{ name }}.");
+
+                        var count = 0; 
+                        $.ajax({
+                            url: "{% url 'exercise_details' %}",
+                            type: 'GET',
+                            data: { exercise_name: "{{ name }}" },
+                            beforeSend: function() {
+                                // Display loading animation
+                                $('#exercise-details-{{ name|slugify }}').html('<div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-500"></div>');
+                            },
+                            success: function(response) {
+                                // Render exercise details on success
+                                $('#exercise-details-{{ name|slugify }}').html(renderExerciseDetails(response));
+                                checkWorkoutStatus('{{ name }}');  // Check the workout status after rendering details
+                            },
+                            error: function(xhr, status, error) {
+                                console.error('Error fetching exercise details:', error);
+                                $('#exercise-details-{{ name|slugify }}').html('<p>Error fetching exercise details.</p>');
+                            }
+                        });
+
+                        function renderExerciseDetails(data) {
+                            // Customize how exercise details are displayed
+                            var html = '<div class="grid grid-cols-1 gap-2">';
+                            html += '<img class="rounded-md shadow-md w-full h-80" src="' + data.image +  '" alt="'+ data.name +'">';
+                            html += '<div class="text-center font-semibold capitalize">';
+                            
+                            // Retrieve and parse the description JSON data from the hidden div
+                            var descriptionData = JSON.parse(document.getElementById('description-{{ name|slugify }}').textContent);
+                            
+                            console.log(descriptionData);
+                            
+                            var counts = 0; 
+                            for (var key in descriptionData) {
+                                if (descriptionData.hasOwnProperty(key)) {
+                                    if (key.toLowerCase().includes('calories')) { // Check if key contains 'calories'
+                                        var cleanName = '{{ name }}'.replace(/\s+/g, '');
+                                        var calorieId = 'calories-' + cleanName.toLowerCase();  // Generate dynamic ID
+                                        html += '<div id="' + calorieId + '">' + descriptionData[key] + '</div>'; // Add calorie data with dynamic ID
+                                    } else {
+                                        html += '<div>' + key + ': ' + descriptionData[key] + '</div>';
+                                    }
+                                    counts++;
+                                }
+                            }
+                            html += '</div>';
+                            html += '<div class="text-center text-sm capitalize">Equipment You Need: ' + data.equipment +  '</div>';
+                            html += '<div class="text-center text-sm capitalize">Target Body Part: ' + data.target +  '</div>';
+                            html += '<div class="text-center font-semibold">Instruction</div>';
+                            html += '<div class="text-sm instruction-content" id="instruction-content-{{ name|slugify }}">' + data.instructions + '</div>';
+                            html += '<div class="flex justify-between">';
+                            html += '<button id="read-more-btn-{{ name|slugify }}" class="bg-gradient-to-tr from-pink-600 to-violet-900 hover:to-pink-600 hover:from-violet-900 text-white font-bold text-lg p-2 rounded-lg shadow-md text-center mx-auto cursor-pointer">Read More</button>';
+                            html += '<div id="start-finish-btn-{{ name|slugify }}" class="bg-gradient-to-tr from-pink-600 to-violet-900 hover:to-pink-600 hover:from-violet-900 text-white font-bold text-lg p-2 rounded-lg shadow-md text-center mx-auto cursor-pointer">Start Now</div>';
+                            html += '</div>';
+                            html += '</div>';
+                            
+                            return html;
+                        }
+
+                        function checkWorkoutStatus(name) {
+                            $.ajax({
+                                url: "{% url 'check_workout_status' %}",
+                                type: 'GET',
+                                data: { workout_name: name,day_number: '{{ day_number }}' },
+                                success: function(response) {
+                                    if (response.completed) {
+                                        $('#start-finish-btn-' + name.toLowerCase().replace(/\s+/g, '-')).text(' Completed').prop('disabled', true).removeClass('bg-gradient-to-tr from-pink-600 to-violet-900 hover:to-pink-600 hover:from-violet-900').addClass('bg-gray-400');
+                                    }
+                                },
+                                error: function(xhr, status, error) {
+                                    console.error('Error checking workout status:', error);
+                                }
+                            });
+                        }
+
+                        $(document).on('click', '#read-more-btn-{{ name|slugify }}', function() {
+                            var btn = $(this);
+                            var instructionContent = $('#instruction-content-{{ name|slugify }}');
+                            if (btn.text() === 'Read More') {
+                                instructionContent.css('max-height', 'none');
+                                btn.text('Read Less');
+                            } else {
+                                instructionContent.css('max-height', '4.5em'); // Adjust based on the number of lines you want to show
+                                btn.text('Read More');
+                            }
+                        });
+
+                        $(document).on('click', '#start-finish-btn-{{ name|slugify }}', function() {
+                            var btn = $(this);
+                            if (btn.text() === 'Start Now') {
+                                btn.text('Workout Finish');
+                            } else {
+                                var cleanName = '{{ name }}'.replace(/\s+/g, '');
+                                var calorieId = 'calories-' + cleanName.toLowerCase();
+                                var calories = $('#'+calorieId).text(); // Extract calories value
+                                console.log('#'+calorieId)
+                                console.log(calories)
+                                console.log(calories)
+                                console.log($('#'+calorieId).length); // Check if element exists
+                                console.log($('#'+calorieId).text());
+                                $.ajax({
+                                    url: "{% url 'complete_workout' %}",  // Update this URL with the correct view URL
+                                    type: 'POST',
+                                    data: {
+                                        day_number: '{{ day_number }}',  // Pass the correct day number
+                                        workout_name: '{{ name }}',  // Pass the correct day number
+                                        calories: calories,  // Pass the correct day number
+                                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                                    },
+                                    success: function(response) {
+                                        console.log('Workout marked as completed.');
+                                        btn.text(' Completed');
+                                        btn.prop('disabled', true); // Disable button after completion
+                                        btn.removeClass('bg-gradient-to-tr from-pink-600 to-violet-900 hover:to-pink-600 hover:from-violet-900').addClass('bg-gray-400');
+                                        showSnackbar(response.message); // Show snackbar on success
+                                    },
+                                    error: function(xhr, status, error) {
+                                        console.error('Error marking workout as completed:', error);
+                                    }
+                                });
+                            }
+                        });
+
+                        function showSnackbar(message) {
+                            var snackbar = document.getElementById('snackbar');
+                            snackbar.textContent = message;
+                            snackbar.className =  snackbar.className.replace('hidden', 'hd');
+                            setTimeout(function() {
+                                snackbar.className = snackbar.className.replace('hd', 'hidden');
+                            }, 3000);
+                        }
+                    });
+                </script>
+                
+                {% endfor %}
+            </div>
+            {% endfor %}
+         </div>
+      </div>
+      {% elif "Exercises (Mix of Upper and Lower body)" in workout_data %}
+      <div class="mb-4">
+         <h3 id="warm-ex-up-toggle" class="cursor-pointer text-xl font-semibold mb-6 rounded-md shadow-md p-4 border">Exercises (Upperbody and Lower Body)</h3>
+         <div id="warm-ex-up-content" class="grid grid-cols-1 lg:grid-cols-3 gap-4 hidden">
+            {% for exercise in workout_data|get_item:"Exercises (Mix of Upper and Lower body)" %}
+            <div class="p-4 bg-gray-100 rounded-lg">
+                {% for name, description in exercise.items %}
+                <h4 class="text-sm m-4 text-center font-bold capitalize">{{ name }}</h4>
+                <div id="exercise-details-{{ name|slugify }}"></div>
+                <!-- Hidden div to store the description JSON data -->
+                <div id="description-{{ name|slugify }}" class="hidden">{{ description|json_script:"description_" }}</div>
+                <script>
+                    $(document).ready(function() {
+                        console.log("Document is ready. Fetching details for {{ name }}.");
+
+                        var count = 0; 
+                        $.ajax({
+                            url: "{% url 'exercise_details' %}",
+                            type: 'GET',
+                            data: { exercise_name: "{{ name }}" },
+                            beforeSend: function() {
+                                // Display loading animation
+                                $('#exercise-details-{{ name|slugify }}').html('<div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-500"></div>');
+                            },
+                            success: function(response) {
+                                // Render exercise details on success
+                                $('#exercise-details-{{ name|slugify }}').html(renderExerciseDetails(response));
+                                checkWorkoutStatus('{{ name }}');  // Check the workout status after rendering details
+                            },
+                            error: function(xhr, status, error) {
+                                console.error('Error fetching exercise details:', error);
+                                $('#exercise-details-{{ name|slugify }}').html('<p>Error fetching exercise details.</p>');
+                            }
+                        });
+
+                        function renderExerciseDetails(data) {
+                            // Customize how exercise details are displayed
+                            var html = '<div class="grid grid-cols-1 gap-2">';
+                            html += '<img class="rounded-md shadow-md w-full h-80" src="' + data.image +  '" alt="'+ data.name +'">';
+                            html += '<div class="text-center font-semibold capitalize">';
+                            
+                            // Retrieve and parse the description JSON data from the hidden div
+                            var descriptionData = JSON.parse(document.getElementById('description-{{ name|slugify }}').textContent);
+                            
+                            console.log(descriptionData);
+                            
+                            var counts = 0; 
+                            for (var key in descriptionData) {
+                                if (descriptionData.hasOwnProperty(key)) {
+                                    if (key.toLowerCase().includes('calories')) { // Check if key contains 'calories'
+                                        var cleanName = '{{ name }}'.replace(/\s+/g, '');
+                                        var calorieId = 'calories-' + cleanName.toLowerCase();  // Generate dynamic ID
+                                        html += '<div id="' + calorieId + '">' + descriptionData[key] + '</div>'; // Add calorie data with dynamic ID
+                                    } else {
+                                        html += '<div>' + key + ': ' + descriptionData[key] + '</div>';
+                                    }
+                                    counts++;
+                                }
+                            }
+                            html += '</div>';
+                            html += '<div class="text-center text-sm capitalize">Equipment You Need: ' + data.equipment +  '</div>';
+                            html += '<div class="text-center text-sm capitalize">Target Body Part: ' + data.target +  '</div>';
+                            html += '<div class="text-center font-semibold">Instruction</div>';
+                            html += '<div class="text-sm instruction-content" id="instruction-content-{{ name|slugify }}">' + data.instructions + '</div>';
+                            html += '<div class="flex justify-between">';
+                            html += '<button id="read-more-btn-{{ name|slugify }}" class="bg-gradient-to-tr from-pink-600 to-violet-900 hover:to-pink-600 hover:from-violet-900 text-white font-bold text-lg p-2 rounded-lg shadow-md text-center mx-auto cursor-pointer">Read More</button>';
+                            html += '<div id="start-finish-btn-{{ name|slugify }}" class="bg-gradient-to-tr from-pink-600 to-violet-900 hover:to-pink-600 hover:from-violet-900 text-white font-bold text-lg p-2 rounded-lg shadow-md text-center mx-auto cursor-pointer">Start Now</div>';
+                            html += '</div>';
+                            html += '</div>';
+                            
+                            return html;
+                        }
+
+                        function checkWorkoutStatus(name) {
+                            $.ajax({
+                                url: "{% url 'check_workout_status' %}",
+                                type: 'GET',
+                                data: { workout_name: name,day_number: '{{ day_number }}' },
+                                success: function(response) {
+                                    if (response.completed) {
+                                        $('#start-finish-btn-' + name.toLowerCase().replace(/\s+/g, '-')).text(' Completed').prop('disabled', true).removeClass('bg-gradient-to-tr from-pink-600 to-violet-900 hover:to-pink-600 hover:from-violet-900').addClass('bg-gray-400');
+                                    }
+                                },
+                                error: function(xhr, status, error) {
+                                    console.error('Error checking workout status:', error);
+                                }
+                            });
+                        }
+
+                        $(document).on('click', '#read-more-btn-{{ name|slugify }}', function() {
+                            var btn = $(this);
+                            var instructionContent = $('#instruction-content-{{ name|slugify }}');
+                            if (btn.text() === 'Read More') {
+                                instructionContent.css('max-height', 'none');
+                                btn.text('Read Less');
+                            } else {
+                                instructionContent.css('max-height', '4.5em'); // Adjust based on the number of lines you want to show
+                                btn.text('Read More');
+                            }
+                        });
+
+                        $(document).on('click', '#start-finish-btn-{{ name|slugify }}', function() {
+                            var btn = $(this);
+                            if (btn.text() === 'Start Now') {
+                                btn.text('Workout Finish');
+                            } else {
+                                var cleanName = '{{ name }}'.replace(/\s+/g, '');
+                                var calorieId = 'calories-' + cleanName.toLowerCase();
+                                var calories = $('#'+calorieId).text(); // Extract calories value
+                                console.log('#'+calorieId)
+                                console.log(calories)
+                                console.log(calories)
+                                console.log($('#'+calorieId).length); // Check if element exists
+                                console.log($('#'+calorieId).text());
+                                $.ajax({
+                                    url: "{% url 'complete_workout' %}",  // Update this URL with the correct view URL
+                                    type: 'POST',
+                                    data: {
+                                        day_number: '{{ day_number }}',  // Pass the correct day number
+                                        workout_name: '{{ name }}',  // Pass the correct day number
+                                        calories: calories,  // Pass the correct day number
+                                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                                    },
+                                    success: function(response) {
+                                        console.log('Workout marked as completed.');
+                                        btn.text(' Completed');
+                                        btn.prop('disabled', true); // Disable button after completion
+                                        btn.removeClass('bg-gradient-to-tr from-pink-600 to-violet-900 hover:to-pink-600 hover:from-violet-900').addClass('bg-gray-400');
+                                        showSnackbar(response.message); // Show snackbar on success
+                                    },
+                                    error: function(xhr, status, error) {
+                                        console.error('Error marking workout as completed:', error);
+                                    }
+                                });
+                            }
+                        });
+
+                        function showSnackbar(message) {
+                            var snackbar = document.getElementById('snackbar');
+                            snackbar.textContent = message;
+                            snackbar.className =  snackbar.className.replace('hidden', 'hd');
+                            setTimeout(function() {
+                                snackbar.className = snackbar.className.replace('hd', 'hidden');
+                            }, 3000);
+                        }
+                    });
+                </script>
+                
+                {% endfor %}
+            </div>
+            {% endfor %}
+         </div>
+      </div>
+      {% endif %}
+      <script>
+         $(document).ready(function() {
+             $('#warm-ex-up-toggle').click(function() {
+                 $('#warm-ex-up-content').toggleClass('hidden');
+             });
+         });
+      </script>
+      <!-- Cool Down Section -->
+      <div class="mb-4">
+         <h3 id="warm-col-up-toggle" class="cursor-pointer text-xl font-semibold mb-6 rounded-md shadow-md p-4 border">Cool Down (10-15 minutes)</h3>
+         <div id="warm-col-up-content" class="grid grid-cols-1 lg:grid-cols-2 gap-4 justify-items-center mx-auto  hidden">
+            {% for exercise in workout_data|get_item:"Cool Down (10-15 minutes)" %}
+            <div class="p-4 w-80  bg-gray-100 rounded-lg">
+                {% for name, description in exercise.items %}
+                <h4 class="text-sm m-4 text-center font-bold capitalize">{{ name }}</h4>
+                <div id="exercise-details-{{ name|slugify }}"></div>
+                <!-- Hidden div to store the description JSON data -->
+                <div  id="description-{{ name|slugify }}" class=" hidden">{{ description|json_script:"description_" }}</div>
+                <script>
+                    $(document).ready(function() {
+                        console.log("Document is ready. Fetching details for {{ name }}.");
+
+                        var count = 0; 
+                        $.ajax({
+                            url: "{% url 'exercise_details' %}",
+                            type: 'GET',
+                            data: { exercise_name: "{{ name }}" },
+                            beforeSend: function() {
+                                // Display loading animation
+                                $('#exercise-details-{{ name|slugify }}').html('<div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-500"></div>');
+                            },
+                            success: function(response) {
+                                // Render exercise details on success
+                                $('#exercise-details-{{ name|slugify }}').html(renderExerciseDetails(response));
+                                checkWorkoutStatus('{{ name }}');  // Check the workout status after rendering details
+                            },
+                            error: function(xhr, status, error) {
+                                console.error('Error fetching exercise details:', error);
+                                $('#exercise-details-{{ name|slugify }}').html('<p>Error fetching exercise details.</p>');
+                            }
+                        });
+
+                        function renderExerciseDetails(data) {
+                            // Customize how exercise details are displayed
+                            var html = '<div class="grid grid-cols-1 gap-2">';
+                            html += '<img class="rounded-md shadow-md w-full h-80" src="' + data.image +  '" alt="'+ data.name +'">';
+                            html += '<div class="text-center font-semibold capitalize">';
+                            
+                            // Retrieve and parse the description JSON data from the hidden div
+                            var descriptionData = JSON.parse(document.getElementById('description-{{ name|slugify }}').textContent);
+                            
+                            console.log(descriptionData);
+                            
+                            var counts = 0; 
+                            for (var key in descriptionData) {
+                                if (descriptionData.hasOwnProperty(key)) {
+                                    if (key.toLowerCase().includes('calories')) { // Check if key contains 'calories'
+                                        var cleanName = '{{ name }}'.replace(/\s+/g, '');
+                                        var calorieId = 'calories-' + cleanName.toLowerCase();  // Generate dynamic ID
+                                        html += '<div id="' + calorieId + '">' + descriptionData[key] + '</div>'; // Add calorie data with dynamic ID
+                                    } else {
+                                        html += '<div>' + key + ': ' + descriptionData[key] + '</div>';
+                                    }
+                                    counts++;
+                                }
+                            }
+                            html += '</div>';
+                            html += '<div class="text-center text-sm capitalize">Equipment You Need: ' + data.equipment +  '</div>';
+                            html += '<div class="text-center text-sm capitalize">Target Body Part: ' + data.target +  '</div>';
+                            html += '<div class="text-center font-semibold">Instruction</div>';
+                            html += '<div class="text-sm instruction-content" id="instruction-content-{{ name|slugify }}">' + data.instructions + '</div>';
+                            html += '<div class="flex justify-between">';
+                            html += '<button id="read-more-btn-{{ name|slugify }}" class="bg-gradient-to-tr from-pink-600 to-violet-900 hover:to-pink-600 hover:from-violet-900 text-white font-bold text-lg p-2 rounded-lg shadow-md text-center mx-auto cursor-pointer">Read More</button>';
+                            html += '<div id="start-finish-btn-{{ name|slugify }}" class="bg-gradient-to-tr from-pink-600 to-violet-900 hover:to-pink-600 hover:from-violet-900 text-white font-bold text-lg p-2 rounded-lg shadow-md text-center mx-auto cursor-pointer">Start Now</div>';
+                            html += '</div>';
+                            html += '</div>';
+                            
+                            return html;
+                        }
+
+                        function checkWorkoutStatus(name) {
+                            $.ajax({
+                                url: "{% url 'check_workout_status' %}",
+                                type: 'GET',
+                                data: { workout_name: name,day_number: '{{ day_number }}' },
+                                success: function(response) {
+                                    if (response.completed) {
+                                        $('#start-finish-btn-' + name.toLowerCase().replace(/\s+/g, '-')).text(' Completed').prop('disabled', true).removeClass('bg-gradient-to-tr from-pink-600 to-violet-900 hover:to-pink-600 hover:from-violet-900').addClass('bg-gray-400');
+                                    }
+                                },
+                                error: function(xhr, status, error) {
+                                    console.error('Error checking workout status:', error);
+                                }
+                            });
+                        }
+
+                        $(document).on('click', '#read-more-btn-{{ name|slugify }}', function() {
+                            var btn = $(this);
+                            var instructionContent = $('#instruction-content-{{ name|slugify }}');
+                            if (btn.text() === 'Read More') {
+                                instructionContent.css('max-height', 'none');
+                                btn.text('Read Less');
+                            } else {
+                                instructionContent.css('max-height', '4.5em'); // Adjust based on the number of lines you want to show
+                                btn.text('Read More');
+                            }
+                        });
+
+                        $(document).on('click', '#start-finish-btn-{{ name|slugify }}', function() {
+                            var btn = $(this);
+                            if (btn.text() === 'Start Now') {
+                                btn.text('Workout Finish');
+                            } else {
+                                var cleanName = '{{ name }}'.replace(/\s+/g, '');
+                                var calorieId = 'calories-' + cleanName.toLowerCase();
+                                var calories = $('#'+calorieId).text(); // Extract calories value
+                                console.log('#'+calorieId)
+                                console.log(calories)
+                                console.log(calories)
+                                console.log($('#'+calorieId).length); // Check if element exists
+                                console.log($('#'+calorieId).text());
+                                $.ajax({
+                                    url: "{% url 'complete_workout' %}",  // Update this URL with the correct view URL
+                                    type: 'POST',
+                                    data: {
+                                        day_number: '{{ day_number }}',  // Pass the correct day number
+                                        workout_name: '{{ name }}',  // Pass the correct day number
+                                        calories: calories,  // Pass the correct day number
+                                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                                    },
+                                    success: function(response) {
+                                        console.log('Workout marked as completed.');
+                                        btn.text(' Completed');
+                                        btn.prop('disabled', true); // Disable button after completion
+                                        btn.removeClass('bg-gradient-to-tr from-pink-600 to-violet-900 hover:to-pink-600 hover:from-violet-900').addClass('bg-gray-400');
+                                        showSnackbar(response.message); // Show snackbar on success
+                                    },
+                                    error: function(xhr, status, error) {
+                                        console.error('Error marking workout as completed:', error);
+                                    }
+                                });
+                            }
+                        });
+
+                        function showSnackbar(message) {
+                            var snackbar = document.getElementById('snackbar');
+                            snackbar.textContent = message;
+                            snackbar.className =  snackbar.className.replace('hidden', 'flex');
+                            setTimeout(function() {
+                                snackbar.className = snackbar.className.replace('flex', 'hidden');
+                            }, 3000);
+                        }
+                    });
+                </script>
+                
+                {% endfor %}
+            </div>
+            {% endfor %}
+         </div>
+         <script>
+            $(document).ready(function() {
+                $('#warm-col-up-toggle').click(function() {
+                    $('#warm-col-up-content').toggleClass('hidden');
+                });
+            });
+         </script>
+      </div>
+      </ul>
+   </div>
+</section>
+{% endblock content %}

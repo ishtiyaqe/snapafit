@@ -1,0 +1,17 @@
+{% extends "root/base.html" %}
+
+{% block content %}
+<section class="flex items-center justify-start m-4 ">
+    <div class="">
+        <h1 class="text-3xl md:text-5xl font-bold text-gradient mb-5 2xl:whitespace-nowrap">About US </h1>
+        <div  >
+            <img class="w-full object-cover h-80 rounded-md shadow-md" src="/media/{{b.image}}" alt="about" />
+        </div>
+        <div class="mt-10 mb-10" >
+            <span >
+                {{b.content|safe}}
+            </span>
+        </div>
+    </div>
+</section>
+{% endblock content %}
