@@ -1,3 +1,3 @@
-Client_ID = 464293315367-61be6utg1smdkqkhbn54sddd2s07lg7k.apps.googleusercontent.com
-Client_secret = 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
-Api_key = AIzaSyDz88J9u6uCKIt8J1g5VlTmaDpqZOJqlYU
+Client_ID = your key
+Client_secret = your key
+Api_key = your key
